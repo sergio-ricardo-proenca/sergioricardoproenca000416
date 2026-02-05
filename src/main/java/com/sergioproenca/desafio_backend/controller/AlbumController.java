@@ -1,8 +1,7 @@
 package com.sergioproenca.desafio_backend.controller;
 
 import com.sergioproenca.desafio_backend.model.Album;
-import com.sergioproenca.desafio_backend.repository.AlbumRepository;
-import com.sergioproenca.desafio_backend.service.CapaService;
+import com.sergioproenca.desafio_backend.service.AlbumService; // Importamos o Service novo
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,10 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AlbumController {
 
     @Autowired
-    private AlbumRepository repository;
-
-    @Autowired
-    private CapaService capaService;
+    private AlbumService albumService; // Agora usamos apenas o Service
 
     @PostMapping
     public ResponseEntity<Album> salvar(
@@ -25,18 +21,14 @@ public class AlbumController {
             @RequestParam("capa") MultipartFile capa) {
         
         try {
-            // 1. Envia a foto para o MinIO (Requisito h)
-            String nomeFoto = capaService.enviarCapa(capa);
-
-            // 2. Cria o objeto Álbum usando os métodos corretos do seu Model (Requisito g)
-            Album album = new Album();
-            album.setTitulo(titulo); 
-            album.setCapaUrl(nomeFoto); 
-
-            return ResponseEntity.ok(repository.save(album));
+            // Chamamos o método salvarCompleto que criamos no AlbumService.
+            // Ele vai cuidar do MinIO, do Banco e do WebSocket de uma vez só!
+            Album album = albumService.salvarCompleto(titulo, capa);
+            
+            return ResponseEntity.ok(album);
             
         } catch (Exception e) {
-            e.printStackTrace(); // Isso ajuda a ver erros no console se o upload falhar
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
