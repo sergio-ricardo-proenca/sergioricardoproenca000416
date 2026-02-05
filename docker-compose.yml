@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  # --- SUA APLICAÇÃO JAVA ---
+  app:
+    build: .
+    container_name: argus-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - minio
+      - redis
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/argus_db
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=password123
+      - SPRING_REDIS_HOST=redis
+
+  # --- BANCO DE DADOS ---
   db:
     image: postgres:15-alpine
     container_name: argus-db
@@ -9,8 +29,9 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     ports:
-      - "5433:5432" # Mudamos aqui! O Windows acessa pela 5433, mas o Docker mantém a 5432 interna.
+      - "5433:5432"
 
+  # --- STORAGE S3 (MINIO) ---
   minio:
     image: minio/minio
     container_name: argus-minio
@@ -22,6 +43,7 @@ services:
       MINIO_ROOT_PASSWORD: password123
     command: server /data --console-address ":9001"
 
+  # --- CACHE / RATE LIMIT ---
   redis:
     image: redis:alpine
     container_name: argus-redis
