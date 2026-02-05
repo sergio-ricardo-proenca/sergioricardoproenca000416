@@ -31,7 +31,6 @@ public class CapaService {
         s3Client.putObject(putObjectRequest, 
                 RequestBody.fromInputStream(arquivo.getInputStream(), arquivo.getSize()));
 
-        // Retorna o nome para salvar no banco de dados (Requisito g)
         return nomeArquivo;
     }
 }
